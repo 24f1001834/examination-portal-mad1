@@ -1,6 +1,7 @@
 """Scheduled examination availability, shared by all role workflows."""
 
 from datetime import datetime, timedelta, timezone
+from results import get_student_result
 
 LOCAL_TIMEZONE = timezone(timedelta(hours=5, minutes=30))
 
@@ -37,6 +38,11 @@ def refresh_phases(connection):
                        (b.status='Completed' AND v.id IS NULL))""", (exam['id'],),
                 ).fetchone()
                 if not unfinished:
-                    phase = 'Completed'
+                    completed = connection.execute(
+                        "SELECT id,student_id FROM bookings WHERE examination_id=? AND status='Completed'",
+                        (exam['id'],),
+                    ).fetchall()
+                    if all(get_student_result(connection, b['id'], b['student_id']) is not None for b in completed):
+                        phase = 'Completed'
             if phase != exam['status']:
                 connection.execute('UPDATE examinations SET status=? WHERE id=?', (phase, exam['id']))

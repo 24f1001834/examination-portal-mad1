@@ -19,8 +19,9 @@ The system supports three roles:
   and pushed.
 - Milestone 4, Examiner dashboard and slot management: approved, committed,
   and pushed.
-- Milestone 5, Student dashboard and examination booking: implemented and
-  tested; awaiting review and approval before commit or the next milestone.
+- Milestone 5, Student dashboard and examination booking: approved, committed,
+  and pushed.
+- Milestone 6, booking history and evaluation tracking: integrated and tested.
 
 ## Database setup
 
@@ -193,7 +194,7 @@ Log in as Admin and use the links at the top of the dashboard:
    bookings in that slot and automatically adds the new examination assignment.
    Completed, cancelled, and evaluated slots are protected. The change is logged.
 8. Completion is automatic after booking ends when no Booked records remain
-   and all completed bookings have evaluations. An examination with no bookings
+   and all completed bookings have complete, valid evaluations. An examination with no bookings
    or only cancelled bookings also becomes Completed. Each Student receives their
    own completed, valid evaluation directly; no Admin publication is required.
 
@@ -391,5 +392,49 @@ Issue resolved: a rejected booking for a hidden examination initially redirected
 to an inaccessible detail page. It now returns to the examination list and shows
 the error. Real accounts and bookings were not changed by the tests. Templates
 were rendered through Flask's test client; browser appearance has not been
-visually reviewed. Milestone 6 remains a separate history/evaluation tracking
-review and integration milestone and has not been started.
+visually reviewed. Milestone 6 adds the history/evaluation integration checks
+described below.
+
+## Milestone 6 history and evaluation integration
+
+The final core milestone verifies existing workflows together rather than
+adding duplicate screens. The user's approved behavior remains in effect:
+automatic phases, Examiner evaluation at any time, direct Student results,
+and Admin timeline updates after slots exist in unfinished examinations.
+
+| Assignment requirement | Implementation and verification |
+| --- | --- |
+| Complete Student examination and booking history | Schedule and history retains Booked, Cancelled, and Completed records and completion timestamps. Cancellation/rebooking retains separate rows. |
+| Configured creation/booking windows | Examiner and Student submissions check current automatic availability, with exact deadline tests. |
+| Capacity and automatic Full status | Transactions protect the final seat; booking, cancellation, and Admin rescheduling update capacity status. |
+| Booking and examination status tracking | Statuses follow deadlines and workflow completion. Missing or invalid criterion marks prevent automatic examination completion. |
+| Examiner ownership and evaluation records | Only the current slot owner can evaluate its bookings. Marks and remarks are submitted atomically and remain read-only. |
+| Admin rescheduling and reassignment | Old/new IDs, reason, Admin, and timestamp are recorded. Rescheduling preserves booking ID/date and updates both slots. |
+| Admin historical visibility | Bookings, slots, examinations, evaluations, and exceptional changes remain viewable after completion, cancellation, or deactivation. |
+| Student privacy | Ownership checks protect personal results and cancellations; another Student's pending result cannot block a valid result. |
+
+Run the full verification suite:
+
+```powershell
+.\.venv\Scripts\python.exe -B -m unittest discover -s tests -v
+```
+
+All 75 tests passed on 11 November 2026: 69 existing tests and six new
+cross-role integration tests in `tests/test_tracking.py`. The new tests cover:
+
+- Student booking, Admin rescheduling, Examiner reassignment, evaluation by the
+  new owner, and private Student result viewing with retained Admin history.
+- Cancellation/rebooking after rescheduling without losing the earlier records.
+- Admin deadline extension restoring cancellation availability with history intact.
+- Protection of evaluated records from rescheduling, reassignment, slot editing,
+  and examination deletion.
+- Incomplete evaluation marks preventing automatic examination completion.
+- Continued result access after Examiner deactivation and course archiving.
+
+Defect found and fixed: automatic completion previously checked only for an
+evaluation row, while result visibility required valid criterion marks. Both now
+use the same result-validity check before the examination becomes Completed.
+No schema changes, new dependencies, or changes to real accounts/bookings were
+needed. Tests use temporary databases; browser layout remains unreviewed.
+Repository privacy from Milestone 0 remains a user-owned pending requirement
+until confirmed. Optional milestones are outside this completed core scope.

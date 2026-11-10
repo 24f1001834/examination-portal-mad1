@@ -293,10 +293,12 @@ class AdminTests(unittest.TestCase):
         self.assertEqual(self.sql('SELECT status FROM examinations')[0][0], 'Closed')
         self.sql('INSERT INTO evaluations(booking_id,examiner_id) VALUES(1,2)')
         self.client.get(self.detail)
-        self.assertEqual(self.sql('SELECT status FROM examinations')[0][0], 'Completed')
+        self.assertEqual(self.sql('SELECT status FROM examinations')[0][0], 'Closed')
         rubric_id = self.sql('SELECT id FROM examination_rubrics')[0][0]
         evaluation_id = self.sql('SELECT id FROM evaluations')[0][0]
         self.sql('INSERT INTO evaluation_marks VALUES(?,?,80)', (evaluation_id, rubric_id))
+        self.client.get(self.detail)
+        self.assertEqual(self.sql('SELECT status FROM examinations')[0][0], 'Completed')
 
     def test_completion_does_not_require_a_completed_booking(self):
         self.sql("UPDATE examinations SET slot_creation_start='2000-01-01 00:00:00',slot_creation_end='2000-01-02 00:00:00',booking_start='2000-01-03 00:00:00',booking_end='2000-01-04 00:00:00'")
