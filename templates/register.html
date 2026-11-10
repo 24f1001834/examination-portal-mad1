@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Register | Examination Management Portal{% endblock %}
+{% block content %}
+<h1 class="h3">Create an account</h1>
+<p class="text-secondary">Examiners need Admin approval before they can log in.</p>
+<form method="post" class="bg-white border rounded p-4">
+  <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+  <div class="mb-3">
+    <label for="name" class="form-label">Full name</label>
+    <input id="name" name="name" class="form-control" maxlength="100" autocomplete="name" value="{{ request.form.get('name', '') }}" required>
+  </div>
+  <div class="mb-3">
+    <label for="email" class="form-label">Email</label>
+    <input id="email" name="email" type="email" class="form-control" maxlength="254" autocomplete="email" value="{{ request.form.get('email', '') }}" required>
+  </div>
+  <div class="mb-3">
+    <label for="role" class="form-label">Account type</label>
+    <select id="role" name="role" class="form-select" required>
+      {% for role in ['Student', 'Examiner'] %}
+        <option value="{{ role }}" {% if request.form.get('role', 'Student') == role %}selected{% endif %}>{{ role }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label for="phone" class="form-label">Phone (optional)</label>
+    <input id="phone" name="phone" type="tel" class="form-control" maxlength="30" autocomplete="tel" value="{{ request.form.get('phone', '') }}">
+  </div>
+  <div class="mb-3">
+    <label for="department" class="form-label">Department (required for Examiners)</label>
+    <input id="department" name="department" class="form-control" maxlength="100" value="{{ request.form.get('department', '') }}">
+  </div>
+  <div class="mb-3">
+    <label for="password" class="form-label">Password</label>
+    <input id="password" name="password" type="password" class="form-control" minlength="8" maxlength="128" autocomplete="new-password" aria-describedby="password-help" required>
+    <div id="password-help" class="form-text">Use 8 to 128 characters.</div>
+  </div>
+  <div class="mb-3">
+    <label for="confirm_password" class="form-label">Confirm password</label>
+    <input id="confirm_password" name="confirm_password" type="password" class="form-control" minlength="8" maxlength="128" autocomplete="new-password" required>
+  </div>
+  <button class="btn btn-primary" type="submit">Register</button>
+</form>
+{% endblock %}

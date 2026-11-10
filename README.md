@@ -12,9 +12,10 @@ The system supports three roles:
 
 - Milestone 0: initial setup committed; collaborator invitation sent. Making the
   GitHub repository private is still pending.
-- Database models and schema setup: implemented; 20 verification checks passed.
-  Awaiting review and approval before commit or the next milestone.
-- Authentication, dashboards, and booking workflows are not implemented yet.
+- Database models and schema setup: approved, committed, and pushed;
+  20 verification checks passed.
+- Authentication and role-based access: implemented and tested; awaiting approval.
+- Dashboard management features and booking workflows are not implemented yet.
 
 ## Database setup
 
@@ -22,7 +23,7 @@ Use Python 3.10 or newer. In PowerShell, from the project directory:
 
 ```powershell
 py -m venv .venv
-.\.venv\Scripts\python.exe -m pip install Flask
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe init_db.py
 ```
 
@@ -92,3 +93,51 @@ initializer above to create your own local database and choose Admin credentials
 Setup issue resolved: the sandbox could not access installed Python, and the
 installed interpreter did not have Flask. A project-local `.venv` was created
 and Flask installed there. The virtual environment is excluded from Git.
+
+## Run the portal
+
+After installing requirements and running `init_db.py` as described above:
+
+```powershell
+.\.venv\Scripts\python.exe app.py
+```
+
+Open http://127.0.0.1:5000 in your browser. Stop the server with Ctrl+C.
+This is Flask's local development server with debug mode disabled.
+Bootstrap styling loads from a CDN and needs an internet connection;
+registration and login do not use JavaScript.
+
+The first startup creates `.session-secret`, a local signing key excluded from
+Git. Keep it private. Keeping this file preserves the signing key across
+restarts; deleting it causes existing sessions to become invalid on restart.
+The browser session stores the user ID and a form-protection token, not passwords.
+
+## Authentication milestone
+
+- Students and Examiners can register. Admin registration is forbidden, including
+  attempts to submit an Admin role directly to the server.
+- All roles use the same login page. Passwords are hashed with Werkzeug.
+- Examiner registration creates a Pending profile. Only Approved, active
+  Examiners may log in. Approval management belongs to the next Admin milestone;
+  no approval screen is included here.
+- Each role has its own protected dashboard entry page. Management functions,
+  examination counts, and bookings will be added in later milestones.
+- Account activity and Examiner approval are checked on every request.
+- Logout clears the session and requires a POST form submission. All POST
+  forms require a session-bound CSRF token to prevent unwanted form submissions.
+- Forms validate names, email, password length and confirmation, account type,
+  and Examiner department. Duplicate emails are rejected case-insensitively.
+
+Verification on 10 November 2026 used Flask's test client and a temporary SQLite
+database, without changing real accounts. All 59 functional checks passed:
+registration and validation, password hashing, all three login redirects, the
+full role-access matrix, blocked Examiner statuses, deactivation during an active
+session, logout, CSRF checks, HTML escaping, session cookie settings, database
+integrity, and the missing-database setup message. HTML templates were rendered
+by these checks; browser appearance has not been visually reviewed.
+
+To try it yourself, register a Student, log in, and confirm that
+`/student/dashboard` opens while `/admin/dashboard` returns Access denied.
+Log out, then log in with the Admin credentials you chose during database setup.
+Registering an Examiner should succeed, but login must remain blocked until
+Admin approval is implemented in the next milestone.
