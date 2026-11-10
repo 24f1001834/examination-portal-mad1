@@ -1,0 +1,13 @@
+{% extends 'student/base.html' %}
+{% block student_content %}
+<h1 class="h3">Student dashboard</h1><p>Welcome, {{ g.user['name'] }}.</p>
+<div class="row g-3 mb-4">{% for label,count in [('Examinations open for booking',available|length),('Upcoming examinations',upcoming|length),('Booked slots',bookings|selectattr('status','equalto','Booked')|list|length),('Available results',result_ids|length)] %}
+<div class="col-6 col-lg-3"><div class="bg-white border rounded p-3"><h2 class="h6">{{ label }}</h2><p class="fs-3 mb-0">{{ count }}</p></div></div>{% endfor %}</div>
+<h2 class="h5">Upcoming examinations</h2>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Course code</th><th>Examination</th><th>Date</th><th>Start</th><th>End</th><th>Examiner</th><th>Booking ID</th></tr></thead><tbody>
+{% for b in upcoming %}<tr><td>{{ b.course_code }}</td><td>{{ b.exam_name }}</td><td>{{ b.slot_date }}</td><td>{{ b.start_time }}</td><td>{{ b.end_time }}</td><td>{{ b.examiner_name }}</td><td>{{ b.id }}</td></tr>{% else %}<tr><td colspan="7">No upcoming examinations.</td></tr>{% endfor %}</tbody></table></div>
+<h2 class="h5">Examinations open for booking</h2>
+<ul>{% for e in available %}<li><a href="{{ url_for('student_examination',exam_id=e.id) }}">{{ e.course_code }} — {{ e.name }}</a></li>{% else %}<li>No examinations are open for booking.</li>{% endfor %}</ul>
+<h2 class="h5">Results</h2>
+<ul>{% for b in bookings if b.id in result_ids %}<li><a href="{{ url_for('student_result',booking_id=b.id) }}">{{ b.course_code }} — {{ b.exam_name }}</a></li>{% else %}<li>No results available.</li>{% endfor %}</ul>
+{% endblock %}

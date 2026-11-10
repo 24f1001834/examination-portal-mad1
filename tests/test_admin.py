@@ -155,6 +155,24 @@ class AdminTests(unittest.TestCase):
         finally:
             upgraded.close()
 
+    def test_timeline_edit_allowed_with_existing_slots_and_bookings(self):
+        self.slots()
+        slots_before = [tuple(r) for r in self.sql('SELECT * FROM examination_slots ORDER BY id')]
+        bookings_before = [tuple(r) for r in self.sql('SELECT * FROM bookings ORDER BY id')]
+        now = datetime.now(timezone(timedelta(hours=5, minutes=30))).replace(tzinfo=None)
+        dates = [now-timedelta(days=4), now-timedelta(days=3), now-timedelta(days=2), now+timedelta(days=2)]
+        fields = ['slot_creation_start','slot_creation_end','booking_start','booking_end']
+        data = dict(zip(fields, [d.strftime('%Y-%m-%dT%H:%M') for d in dates]))
+        url = self.detail+'?section=timeline'
+        page = self.post(url, {'action':'timeline', **data})
+        self.assertIn(b'Examination updated', page.data)
+        self.assertEqual(self.sql('SELECT status FROM examinations')[0][0], 'Booking Open')
+        self.assertEqual([tuple(r) for r in self.sql('SELECT * FROM examination_slots ORDER BY id')], slots_before)
+        self.assertEqual([tuple(r) for r in self.sql('SELECT * FROM bookings ORDER BY id')], bookings_before)
+        saved = tuple(self.sql('SELECT slot_creation_start,slot_creation_end,booking_start,booking_end FROM examinations')[0])
+        self.assertIn(b'Timelines must follow', self.post(url, {'action':'timeline', **data, 'booking_end':data['booking_start']}).data)
+        self.assertEqual(tuple(self.sql('SELECT slot_creation_start,slot_creation_end,booking_start,booking_end FROM examinations')[0]), saved)
+
     def test_dashboard_counts(self):
         self.slots()
         page = self.client.get('/admin/dashboard').data

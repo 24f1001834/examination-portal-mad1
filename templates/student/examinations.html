@@ -1,0 +1,11 @@
+{% extends 'student/base.html' %}
+{% block student_content %}
+<h1 class="h3">Examinations</h1>
+<form method="get" class="row g-2 mb-4">
+<div class="col-md-4"><label for="q" class="form-label">Name, course code, or examination ID</label><input id="q" name="q" value="{{ q }}" class="form-control"></div>
+<div class="col-md-3"><label for="course" class="form-label">Course</label><select id="course" name="course" class="form-select"><option value="">All courses</option>{% for c in courses %}<option value="{{ c.id }}" {% if course == c.id|string %}selected{% endif %}>{{ c.code }}</option>{% endfor %}</select></div>
+<div class="col-md-3"><label for="type" class="form-label">Type</label><select id="type" name="type" class="form-select"><option value="">All types</option>{% for t in ['Viva','Practical','Project Demo','Assessment'] %}<option {% if kind == t %}selected{% endif %}>{{ t }}</option>{% endfor %}</select></div>
+<div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary">Search</button></div></form>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>ID</th><th>Course code</th><th>Name</th><th>Type</th><th>Duration (minutes)</th><th>Maximum marks</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for e in exams %}<tr><td>{{ e.id }}</td><td>{{ e.course_code }}</td><td>{{ e.name }}</td><td>{{ e.exam_type }}</td><td>{{ e.duration_minutes }}</td><td>{{ e.maximum_marks }}</td><td>{{ e.status }}</td><td><a href="{{ url_for('student_examination',exam_id=e.id) }}">View slots</a></td></tr>{% else %}<tr><td colspan="8">No matching examinations.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

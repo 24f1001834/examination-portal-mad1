@@ -12,6 +12,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from database import DATABASE_PATH, get_connection
 from admin import register_admin_routes
 from examiner import register_examiner_routes
+from student import register_student_routes
 from phases import refresh_phases
 
 
@@ -184,10 +185,7 @@ def create_app(test_config=None):
 
     register_examiner_routes(app, get_db, role_required)
 
-    @app.route("/student/dashboard")
-    @role_required("Student")
-    def student_dashboard():
-        return render_template("dashboard.html", role="Student")
+    register_student_routes(app, get_db, role_required)
 
     @app.errorhandler(403)
     def forbidden(error):

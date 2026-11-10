@@ -190,8 +190,6 @@ def register_admin_routes(app, get_db, role_required):
                     if exam["status"] == "Completed":
                         raise ValueError("Completed examination configuration is protected.")
                     if action == "timeline":
-                        if db.execute("SELECT 1 FROM examination_slots WHERE examination_id=?", (exam_id,)).fetchone():
-                            raise ValueError("Timelines cannot change after slots exist.")
                         dates = []
                         for field in ("slot_creation_start", "slot_creation_end", "booking_start", "booking_end"):
                             try:

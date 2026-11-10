@@ -202,8 +202,6 @@ def register_examiner_routes(app, get_db, role_required):
                         raise ValueError('Only pending bookings in unfinished slots can be evaluated.')
                     if db.execute('SELECT 1 FROM evaluations WHERE booking_id=?', (booking_id,)).fetchone():
                         raise ValueError('This evaluation has already been submitted.')
-                    if slot['slot_date'] + ' ' + slot['end_time'] > local_now().strftime('%Y-%m-%d %H:%M:%S'):
-                        raise ValueError('Submit evaluation after the examination slot ends.')
                     rubrics = rubrics_for(exam)
                     marks = []
                     for rubric in rubrics:

@@ -1,0 +1,9 @@
+{% extends 'student/base.html' %}
+{% from 'admin/forms.html' import token,field with context %}
+{% block student_content %}
+<h1 class="h3">Your profile</h1><p>Email: {{ g.user['email'] }}</p>
+<form method="post" class="col-lg-6 bg-white border rounded p-3">{{ token() }}
+{{ field('name','Full name',g.user['name'],maximum=100) }}
+{{ field('phone','Phone',g.user['phone'] or '',type='tel',required=false,maximum=30) }}
+<button class="btn btn-primary">Save</button></form>
+{% endblock %}

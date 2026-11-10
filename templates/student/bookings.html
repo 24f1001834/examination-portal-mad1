@@ -1,0 +1,10 @@
+{% extends 'student/base.html' %}
+{% from 'admin/forms.html' import token with context %}
+{% block student_content %}
+<h1 class="h3">Schedule and history</h1>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Booking ID</th><th>Course code</th><th>Examination</th><th>Slot ID</th><th>Date</th><th>Start</th><th>End</th><th>Examiner</th><th>Status</th><th>Booked (UTC)</th><th>Completed (UTC)</th><th>Actions</th></tr></thead><tbody>
+{% for b in bookings %}<tr><td>{{ b.id }}</td><td>{{ b.course_code }}</td><td>{{ b.exam_name }}</td><td>{{ b.slot_id }}</td><td>{{ b.slot_date }}</td><td>{{ b.start_time }}</td><td>{{ b.end_time }}</td><td>{{ b.examiner_name }}</td><td>{{ b.status }}</td><td>{{ b.booking_date }}</td><td>{{ b.completed_at or '' }}</td><td>
+{% if b.id in result_ids %}<a href="{{ url_for('student_result',booking_id=b.id) }}">View result</a>{% elif b.status != 'Cancelled' %}<a href="{{ url_for('student_result',booking_id=b.id) }}">Result pending</a>{% endif %}
+{% if b.status=='Booked' and b.booking_end and now < b.booking_end %}<form class="mt-2" method="post" action="{{ url_for('student_cancel',booking_id=b.id) }}">{{ token() }}<button class="btn btn-sm btn-outline-danger">Cancel</button></form>{% endif %}
+</td></tr>{% else %}<tr><td colspan="12">No booking history.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'student/base.html' %}
+{% block student_content %}
+<h1 class="h3">Result — {{ exam.name }}</h1><p>Course: {{ exam.course_code }}. Booking #{{ booking.id }}.</p>
+{% if result %}
+<p class="fs-4">Total: {{ result.total_marks }} / {{ exam.maximum_marks }}</p>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Criterion</th><th>Maximum marks</th><th>Awarded marks</th></tr></thead><tbody>
+{% for m in result.marks %}<tr><td>{{ m.criterion_name }}</td><td>{{ m.maximum_marks }}</td><td>{{ m.awarded_marks }}</td></tr>{% endfor %}</tbody></table></div>
+<p>Feedback: {{ result.evaluation.remarks or 'None' }}</p><p>Evaluated (UTC): {{ result.evaluation.submitted_at }}</p>
+{% elif booking.status=='Cancelled' %}<p>This booking was cancelled.</p>{% else %}<p>Result pending.</p>{% endif %}
+{% endblock %}

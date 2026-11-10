@@ -17,10 +17,10 @@ The system supports three roles:
 - Authentication and role-based access: approved, committed, and pushed.
 - Milestone 3, Admin dashboard and examination management: approved, committed,
   and pushed.
-- Milestone 4, Examiner dashboard and slot management: implemented and tested;
-  awaiting review and approval before commit or the next milestone.
-- Student booking and result-viewing screens belong to Milestone 5 and are not
-  implemented yet.
+- Milestone 4, Examiner dashboard and slot management: approved, committed,
+  and pushed.
+- Milestone 5, Student dashboard and examination booking: implemented and
+  tested; awaiting review and approval before commit or the next milestone.
 
 ## Database setup
 
@@ -125,8 +125,8 @@ The browser session stores the user ID and a form-protection token, not password
 - All roles use the same login page. Passwords are hashed with Werkzeug.
 - Examiner registration creates a Pending profile. Only Approved, active
   Examiners may log in. Admin can now approve them from Examiners.
-- Each role has its own protected dashboard. Admin and Examiner management are
-  implemented; Student management belongs to the next milestone.
+- Each role has its own protected dashboard. Admin, Examiner, and Student
+  workflows are implemented through Milestone 5.
 - Account activity and Examiner approval are checked on every request.
 - Logout clears the session and requires a POST form submission. All POST
   forms require a session-bound CSRF token to prevent unwanted form submissions.
@@ -202,8 +202,11 @@ Unreferenced courses and examinations can be removed. Deletion of historical
 records is rejected by foreign keys, and failed deletion rolls back related
 changes. Use course Inactive or examination Closed when history must remain.
 Rubrics are editable before slots exist. Once slots exist, only
-the examination name can be edited; course, type, duration, marks, and timelines
-are protected. Unused Examiner assignments can be removed; assignments with
+the examination name can be edited through Edit; course, type, duration, and marks
+are protected. Admin can update creation and booking timelines through Manage
+even when slots and bookings exist, provided the examination is not Completed.
+Existing slots and bookings are preserved; automatic availability follows the
+updated timeline. Unused Examiner assignments can be removed; assignments with
 slots remain until those slots are reassigned.
 
 ## Admin milestone verification
@@ -253,7 +256,7 @@ in results.py returns only the requesting Student's completed evaluation with
 valid marks for all rubric criteria. Other Students' pending bookings and the
 examination-wide phase do not block an eligible result. Incomplete evaluations
 remain pending. Examiner submission is implemented in Milestone 4. The Student
-result screen will use this rule in Milestone 5 and is not built yet.
+result screen uses this rule in Milestone 5.
 The old results_published database column is retained only for compatibility
 with existing databases and has no effect on result visibility.
 
@@ -298,7 +301,8 @@ needed for this milestone.
    slot if booking or Admin history references it; otherwise it removes the row.
    These rules are checked on every submission, including forms opened earlier.
 6. Open Students for an owned slot. Bookings show their status and evaluation
-   link. After the slot ends, enter marks for every criterion and optional remarks.
+   link. Evaluation may be submitted at any time, including before the scheduled
+   slot starts. Enter marks for every criterion and optional remarks.
    Each score must be finite and between zero and that criterion's maximum.
    Submit once: the evaluation, marks, and booking completion are saved together.
 7. Submitted evaluations are read-only. When no Booked records remain, the slot
@@ -306,10 +310,9 @@ needed for this milestone.
    completion rules. Another Student's pending evaluation does not delay the
    submitted Student's result eligibility.
 
-The Student results page and Student booking form remain Milestone 5 work.
-Testing this milestone uses temporary booking fixtures instead of adding
-unrequested booking tools to the Examiner interface. No real Student records
-or evaluation records were created during testing.
+The Milestone 4 tests use temporary booking fixtures. Milestone 5 adds actual
+Student booking and result pages. No real Student or evaluation records were
+created during testing.
 
 ## Milestone 4 verification
 
@@ -330,3 +333,63 @@ Issue resolved during implementation: an SQL string quote error prevented module
 import on the first test run. It was corrected before rerunning the full suite.
 Templates were rendered through Flask's test client; browser appearance has not
 been visually reviewed.
+
+
+## Milestone 5 Student workflow
+
+No schema changes or new packages are needed. Restart the server and log in as
+an existing Student, or register a new Student account.
+
+1. Open Examinations to search by examination name, course code, or examination
+   ID. Filter by course and examination type. Draft examinations and inactive
+   courses are hidden from the public Student examination list.
+2. Open View slots to see the Examiner, dates/times, capacity, available seats,
+   and status. Book only during the automatic booking period. The start is
+   inclusive and the end is exclusive, using Asia/Kolkata time. The server
+   rechecks the period on submission, even if the page was opened earlier.
+3. Booking requires an active course, approved active Examiner, upcoming slot,
+   and available seat. A Student cannot hold two non-cancelled bookings for the
+   same examination or overlapping Booked examinations. A completed booking also
+   prevents another booking for that examination.
+4. Schedule and history shows only the logged-in Student's records, including
+   cancelled and completed bookings. Cancel a pending booking before the booking
+   end timestamp. Cancellation preserves its history row and restores capacity;
+   rebooking creates a new record. Evaluated bookings cannot be cancelled.
+5. The dashboard shows examinations open for booking, upcoming examinations,
+   booked-slot count, and available results. Use the examination links for slots
+   and Schedule and history for the full personal record.
+6. Open View result after the assigned Examiner submits a completed, valid
+   evaluation. Criterion marks, total marks, and remarks appear directly, without
+   Admin publication or waiting for other Students. Incomplete results display
+   Result pending and never expose partial marks or feedback.
+7. Profile allows name and phone updates. Role, email, approval, and account
+   activity cannot be changed through the Student form.
+
+Booking and cancellation use SQLite transactions with BEGIN IMMEDIATE: the
+capacity/duplicate checks and write happen under the same write lock. Slot Full
+and Available statuses are updated from actual non-cancelled booking counts.
+Student-supplied booking IDs are always checked against the logged-in owner.
+
+## Milestone 5 verification
+
+Run the full suite with the command in the previous verification section.
+All 68 tests passed on 11 November 2026: 15 new Student tests and the 53 existing
+Admin, Examiner, and phase tests. Temporary databases cover:
+
+- Student pages, empty states, dashboard counts, searches, and filters.
+- Booking, full-slot and duplicate rejection, and overlapping-examination checks.
+- Exact booking-start/end and cancellation-deadline boundaries.
+- Cancellation, restored seats, preserved history, and rebooking.
+- Inactive accounts/courses/Examiners, unavailable slots, role restrictions,
+  CSRF, ownership checks, and invalid record IDs.
+- Full Student booking -> Examiner evaluation -> private Student result flow,
+  including another Student still pending and escaped feedback.
+- Concurrent requests for the final seat: exactly one booking succeeds.
+- Repeated booking/cancellation submissions and database integrity.
+
+Issue resolved: a rejected booking for a hidden examination initially redirected
+to an inaccessible detail page. It now returns to the examination list and shows
+the error. Real accounts and bookings were not changed by the tests. Templates
+were rendered through Flask's test client; browser appearance has not been
+visually reviewed. Milestone 6 remains a separate history/evaluation tracking
+review and integration milestone and has not been started.

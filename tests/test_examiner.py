@@ -293,15 +293,12 @@ class ExaminerTests(unittest.TestCase):
         self.assertIn(b'Only pending bookings',self.post('/examiner/bookings/2/evaluate',self.scores()).data)
         self.assertEqual(len(self.sql('SELECT * FROM evaluations')),1)
 
-    def test_evaluation_waits_until_slot_ends(self):
+    def test_evaluation_allowed_before_slot_starts(self):
         sid=self.create_slot()
         self.sql('INSERT INTO bookings(id,student_id,slot_id,examination_id) VALUES(1,4,?,1)',(sid,))
-        self.assertIn(b'after the examination slot ends',self.post('/examiner/bookings/1/evaluate',self.scores()).data)
-        self.assertFalse(self.sql('SELECT * FROM evaluations'))
-        end=datetime.strptime(self.slot_data['slot_date']+' 10:30:00','%Y-%m-%d %H:%M:%S').replace(tzinfo=LOCAL_TIMEZONE)
-        with patch('examiner.local_now',return_value=end):
-            self.post('/examiner/bookings/1/evaluate',self.scores())
+        self.assertIn(b'Evaluation submitted',self.post('/examiner/bookings/1/evaluate',self.scores()).data)
         self.assertEqual(len(self.sql('SELECT * FROM evaluations')),1)
+        self.assertEqual(self.sql('SELECT status FROM bookings WHERE id=1')[0][0],'Completed')
 
     def test_zero_marks_and_escaped_feedback(self):
         self.prepare_evaluation()

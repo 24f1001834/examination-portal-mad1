@@ -1,0 +1,12 @@
+{% extends 'student/base.html' %}
+{% from 'admin/forms.html' import token with context %}
+{% block student_content %}
+<h1 class="h3">{{ exam.name }}</h1><p>Course: {{ exam.course_code }}. Status: {{ exam.status }}.</p>
+<p>Booking period (Asia/Kolkata): {{ exam.booking_start }} to {{ exam.booking_end }}.</p>
+{% if existing %}<p>You already have a booking for this examination. <a href="{{ url_for('student_bookings') }}">View schedule and history</a>.</p>{% elif not booking_open %}<p>Booking is closed.</p>{% endif %}
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Slot ID</th><th>Examiner</th><th>Date</th><th>Start</th><th>End</th><th>Capacity</th><th>Available seats</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for s in slots %}<tr><td>{{ s.id }}</td><td>{{ s.examiner_name }}</td><td>{{ s.slot_date }}</td><td>{{ s.start_time }}</td><td>{{ s.end_time }}</td><td>{{ s.maximum_capacity }}</td><td>{{ s.seats }}</td><td>{{ s.status }}</td><td>
+{% if booking_open and not existing and s.seats>0 and s.status in ['Available','Full'] and s.is_active and s.examiner_status=='Approved' and s.slot_date ~ ' ' ~ s.start_time > now %}
+<form method="post" action="{{ url_for('student_book',slot_id=s.id) }}">{{ token() }}<button class="btn btn-sm btn-primary">Book</button></form>
+{% else %}Unavailable{% endif %}</td></tr>{% else %}<tr><td colspan="9">No slots.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

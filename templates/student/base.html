@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Student | Examination Management Portal{% endblock %}
+{% block content_width %}col-12{% endblock %}
+{% block content %}
+<nav class="d-flex flex-wrap gap-3 mb-4" aria-label="Student navigation">
+<a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+<a href="{{ url_for('student_examinations') }}">Examinations</a>
+<a href="{{ url_for('student_bookings') }}">Schedule and history</a>
+<a href="{{ url_for('student_profile') }}">Profile</a>
+</nav>
+{% block student_content %}{% endblock %}
+{% endblock %}
