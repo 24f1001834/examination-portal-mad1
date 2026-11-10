@@ -1,0 +1,26 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/forms.html' import token, field with context %}
+{% block admin_content %}
+<h1 class="h3">Examinations</h1>
+{% if show_form %}<section class="col-lg-6">
+<h2 class="h5">{{ 'Edit examination #' ~ exam.id if exam else 'Add examination' }}</h2>
+<form method="post" class="border rounded bg-white p-3">{{ token() }}
+<label for="course_id" class="form-label">Course</label>
+<select id="course_id" name="course_id" class="form-select mb-3" required><option value="">Choose course</option>{% for c in courses %}<option value="{{ c.id }}" {% if request.form.get('course_id',exam.course_id|string if exam else '') == c.id|string %}selected{% endif %}>{{ c.code }} — {{ c.name }} ({{ c.status }})</option>{% endfor %}</select>
+{{ field('name','Examination name',exam.name if exam else '',maximum=150) }}
+<label for="exam_type" class="form-label">Type</label>
+<select id="exam_type" name="exam_type" class="form-select mb-3">{% for kind in ['Viva','Practical','Project Demo','Assessment'] %}<option {% if request.form.get('exam_type',exam.exam_type if exam else '') == kind %}selected{% endif %}>{{ kind }}</option>{% endfor %}</select>
+{{ field('duration_minutes','Duration (minutes)',exam.duration_minutes if exam else '',type='number',step='1') }}
+{{ field('maximum_marks','Maximum marks',exam.maximum_marks if exam else '',type='number',step='0.01') }}
+<button class="btn btn-primary">Save examination</button> <a href="{{ url_for('admin_examinations') }}">Cancel</a>
+</form></section>
+{% else %}<a class="btn btn-primary mb-3" href="/admin/examinations/new">New examination</a>
+<section><h2 class="h5">All examinations</h2>
+<form method="get" action="{{ url_for('admin_examinations') }}" class="d-flex gap-2 mb-3"><label class="visually-hidden" for="q">Search examinations</label><input id="q" name="q" value="{{ q }}" placeholder="Examination name or ID" class="form-control"><button class="btn btn-outline-primary">Search</button></form>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>ID</th><th>Course ID</th><th>Course code</th><th>Name</th><th>Type</th><th>Duration (minutes)</th><th>Maximum marks</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for e in exams %}<tr><td>{{ e.id }}</td><td>{{ e.course_id }}</td><td>{{ e.code }}</td><td>{{ e.name }}</td><td>{{ e.exam_type }}</td><td>{{ e.duration_minutes }}</td><td>{{ e.maximum_marks }}</td><td>{{ e.status }}</td><td>
+<a href="{{ url_for('admin_examination',exam_id=e.id) }}">Manage</a><br><a href="{{ url_for('admin_examinations',exam_id=e.id) }}">Edit</a>
+<form method="post" action="{{ url_for('admin_delete_examination',exam_id=e.id) }}" class="mt-2">{{ token() }}<button class="btn btn-sm btn-outline-danger">Delete</button></form>
+</td></tr>{% else %}<tr><td colspan="9">No matching examinations.</td></tr>{% endfor %}
+</tbody></table></div></section>{% endif %}
+{% endblock %}

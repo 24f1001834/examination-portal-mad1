@@ -1,0 +1,50 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/forms.html' import token, field with context %}
+{% block admin_content %}
+<h1 class="h3">{{ exam.name }} — #{{ exam.id }}</h1>
+<p>Course code: <strong>{{ course.code }}</strong></p>
+<p>Status: <strong>{{ exam.status }}</strong>.</p>
+<nav class="d-flex flex-wrap gap-3 mb-4" aria-label="Examination management">
+<a href="{{ url_for('admin_examination',exam_id=exam.id,section='examiners') }}">Assigned Examiners</a>
+<a href="{{ url_for('admin_examination',exam_id=exam.id,section='rubrics') }}">Evaluation Rubrics</a>
+<a href="{{ url_for('admin_examination',exam_id=exam.id,section='timeline') }}">Slot creation and booking</a>
+<a href="{{ url_for('admin_examination',exam_id=exam.id,section='slots') }}">Edit slots</a>
+</nav>
+{% if section == 'slots' %}
+<h2 class="h5">Examination slots</h2>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>ID</th><th>Examiner</th><th>Date</th><th>Start time</th><th>End time</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for s in slots %}<tr><td>{{ s.id }}</td><td>{{ s.examiner_name }}</td><td>{{ s.slot_date }}</td><td>{{ s.start_time }}</td><td>{{ s.end_time }}</td><td>{{ s.maximum_capacity }}</td><td>{{ s.status }}</td><td><a href="{{ url_for('admin_edit_slot',slot_id=s.id) }}">Edit</a></td></tr>{% else %}<tr><td colspan="8">No slots.</td></tr>{% endfor %}
+</tbody></table></div>
+{% elif section == 'timeline' %}
+<h2 class="h5">Slot creation and booking</h2>
+<form method="post" class="col-lg-6">{{ token() }}<input type="hidden" name="action" value="timeline">
+{% for key,label in [('slot_creation_start','Slot creation starts'),('slot_creation_end','Slot creation ends'),('booking_start','Student booking starts'),('booking_end','Student booking ends')] %}
+{{ field(key,label,exam[key][:16]|replace(' ','T') if exam[key] else '',type='datetime-local') }}
+{% endfor %}
+<button class="btn btn-primary">Save</button></form>
+{% elif section == 'examiners' %}
+<section><h2 class="h5">Assigned Examiners</h2>
+<ul>{% for x in assignments %}<li>{{ x.name }} (#{{ x.id }}) — {{ x.status }}
+<form method="post" class="d-inline">{{ token() }}<input type="hidden" name="action" value="unassign"><input type="hidden" name="examiner_id" value="{{ x.id }}"><button class="btn btn-sm btn-outline-danger">Remove unused assignment</button></form></li>{% else %}<li>No assignments.</li>{% endfor %}</ul>
+<form method="post" class="d-flex gap-2">{{ token() }}<input type="hidden" name="action" value="assign"><label class="visually-hidden" for="examiner_id">Approved Examiner</label><select id="examiner_id" name="examiner_id" class="form-select" required><option value="">Choose approved Examiner</option>{% for x in examiners %}<option value="{{ x.id }}">{{ x.name }} (#{{ x.id }})</option>{% endfor %}</select><button class="btn btn-primary">Assign</button></form>
+</section>
+{% elif section == 'rubrics' %}
+<section class="mt-4"><h2 class="h5">Evaluation rubrics</h2>
+<p>Total maximum marks: {{ totals[0] }} / {{ exam.maximum_marks }}. Total weightage: {{ totals[1] }} / 100%. Edit before slots exist.</p>
+{% for r in rubrics %}
+<form method="post" class="border rounded bg-white p-3 mb-3">{{ token() }}<input type="hidden" name="rubric_id" value="{{ r.id }}">
+<div class="row g-2">
+<div class="col-md-3"><label for="criterion-{{ r.id }}">Criterion</label><input id="criterion-{{ r.id }}" name="criterion_name" value="{{ r.criterion_name }}" class="form-control" required maxlength="150"></div>
+<div class="col-md-2"><label for="marks-{{ r.id }}">Maximum marks</label><input id="marks-{{ r.id }}" name="maximum_marks" value="{{ r.maximum_marks }}" type="number" min="0.01" step="0.01" class="form-control" required></div>
+<div class="col-md-2"><label for="weight-{{ r.id }}">Weightage (%)</label><input id="weight-{{ r.id }}" name="weightage" value="{{ r.weightage }}" type="number" min="0.01" max="100" step="0.01" class="form-control" required></div>
+<div class="col-md-5"><label for="desc-{{ r.id }}">Description</label><input id="desc-{{ r.id }}" name="description" value="{{ r.description or '' }}" class="form-control" maxlength="2000"></div>
+</div><button name="action" value="rubric" class="btn btn-outline-primary mt-2">Save criterion #{{ r.id }}</button> <button name="action" value="delete_rubric" class="btn btn-outline-danger mt-2" formnovalidate>Delete criterion</button>
+</form>{% endfor %}
+<h3 class="h6">Add criterion</h3><form method="post" class="border rounded bg-white p-3">{{ token() }}<input type="hidden" name="action" value="rubric">
+{{ field('criterion_name','Criterion name',maximum=150) }}
+{{ field('maximum_marks','Maximum marks',type='number',step='0.01') }}
+{{ field('weightage','Weightage (%)',type='number',step='0.01') }}
+{{ field('description','Description',required=false,maximum=2000) }}
+<button class="btn btn-primary">Add criterion</button></form></section>
+{% endif %}
+{% endblock %}

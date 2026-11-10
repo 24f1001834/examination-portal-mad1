@@ -1,0 +1,10 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/forms.html' import token, field with context %}
+{% block admin_content %}
+<h1 class="h3">Change Examiner for slot #{{ slot.id }}</h1>
+<p>Current Examiner #{{ slot.examiner_id }}. {{ slot.slot_date }}, {{ slot.start_time }}–{{ slot.end_time }}.</p>
+<p>This changes the Examiner for every booking in this slot. Completed or evaluated slots are protected.</p>
+<form method="post" class="col-lg-6 border rounded bg-white p-3">{{ token() }}
+<label for="examiner_id" class="form-label">New Examiner</label><select id="examiner_id" name="examiner_id" class="form-select mb-3" required><option value="">Choose approved Examiner</option>{% for x in examiners %}<option value="{{ x.id }}">{{ x.name }} (#{{ x.id }})</option>{% endfor %}</select>
+{{ field('reason','Reason for exceptional reassignment',maximum=1000) }}<button class="btn btn-primary">Change Examiner</button></form>
+{% endblock %}

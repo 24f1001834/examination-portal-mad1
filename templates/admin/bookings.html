@@ -1,0 +1,8 @@
+{% extends 'admin/base.html' %}
+{% block admin_content %}
+<h1 class="h3">All bookings and booking history</h1>
+<form method="get" class="d-flex gap-2 mb-3"><label class="visually-hidden" for="q">Search bookings</label><input id="q" name="q" value="{{ q }}" placeholder="Student or examination name, booking or Student ID" class="form-control"><button class="btn btn-outline-primary">Search</button></form>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Booking / Student</th><th>Examination</th><th>Slot / Examiner</th><th>Status / Dates</th><th>Action</th></tr></thead><tbody>
+{% for b in bookings %}<tr><td>#{{ b.id }} / {{ b.student_name }} (#{{ b.student_id }})</td><td>{{ b.exam_name }} (#{{ b.examination_id }})</td><td>#{{ b.slot_id }}: {{ b.slot_date }} {{ b.start_time }}<br>{{ b.examiner_name }}</td><td>{{ b.status }}<br>Booked (UTC): {{ b.booking_date }}{% if b.completed_at %}<br>Completed (UTC): {{ b.completed_at }}{% endif %}</td><td>{% if b.status=='Booked' %}<a href="{{ url_for('admin_reschedule',booking_id=b.id) }}">Reschedule</a>{% endif %}</td></tr>
+{% else %}<tr><td colspan="5">No matching bookings.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'admin/base.html' %}
+{% block admin_content %}
+<h1 class="h3">All examination slots</h1>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>ID / Exam</th><th>Examiner</th><th>Date / Time (local)</th><th>Seats</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for s in slots %}<tr><td>{{ s.id }} / {{ s.exam_name }} (#{{ s.examination_id }})</td><td>{{ s.examiner_name }} (#{{ s.examiner_id }})</td><td>{{ s.slot_date }}<br>{{ s.start_time }}–{{ s.end_time }}</td><td>{{ s.occupied }} / {{ s.maximum_capacity }} occupied<br>{{ s.maximum_capacity - s.occupied }} available</td><td>{{ s.status }}</td><td><a href="{{ url_for('admin_reassign',slot_id=s.id) }}">Change Examiner</a></td></tr>
+{% else %}<tr><td colspan="6">No slots yet. Examiners create slots in their milestone.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

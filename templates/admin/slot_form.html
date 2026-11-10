@@ -1,0 +1,13 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/forms.html' import token, field with context %}
+{% block admin_content %}
+<h1 class="h3">Edit slot #{{ slot.id }}</h1>
+<form method="post" class="col-lg-6">{{ token() }}
+{{ field('slot_date','Date',slot.slot_date,type='date') }}
+{{ field('start_time','Start time',slot.start_time[:5],type='time') }}
+{{ field('end_time','End time',slot.end_time[:5],type='time') }}
+{{ field('maximum_capacity','Capacity',slot.maximum_capacity,type='number',step='1') }}
+<button class="btn btn-primary">Save</button>
+<a href="{{ url_for('admin_examination',exam_id=slot.examination_id,section='slots') }}">Cancel</a>
+</form>
+{% endblock %}

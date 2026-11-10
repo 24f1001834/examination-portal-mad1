@@ -1,0 +1,9 @@
+{% extends 'admin/base.html' %}
+{% block admin_content %}
+<h1 class="h3">Admin dashboard</h1>
+<p>Welcome, {{ g.user['name'] }}. Counts include historical and inactive records.</p>
+<div class="row g-3">{% for label, count in counts.items() %}
+  <div class="col-6 col-md-4"><div class="border rounded bg-white p-3"><h2 class="h6">{{ label }}</h2><p class="fs-3 mb-0">{{ count }}</p></div></div>
+{% endfor %}</div>
+<p class="mt-4">Set up courses and examinations, add rubrics, approve and assign Examiners, then open the appropriate phase within its timeline.</p>
+{% endblock %}

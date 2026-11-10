@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Admin | Examination Management Portal{% endblock %}
+{% block content_width %}col-12{% endblock %}
+{% block content %}
+<nav class="d-flex flex-wrap gap-3 mb-4" aria-label="Admin navigation">
+  <a href="{{ url_for('admin_dashboard') }}">Overview</a>
+  <a href="{{ url_for('admin_courses') }}">Courses</a>
+  <a href="{{ url_for('admin_examinations') }}">Examinations</a>
+  <a href="/admin/examiners">Examiners</a>
+  <a href="/admin/students">Students</a>
+  <a href="{{ url_for('admin_slots') }}">Slots</a>
+  <a href="{{ url_for('admin_bookings') }}">Bookings</a>
+  <a href="{{ url_for('admin_history') }}">History and evaluations</a>
+</nav>
+{% block admin_content %}{% endblock %}
+{% endblock %}

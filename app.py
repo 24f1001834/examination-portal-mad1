@@ -10,6 +10,8 @@ from flask import Flask, abort, flash, g, redirect, render_template, request, se
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import DATABASE_PATH, get_connection
+from admin import register_admin_routes
+from phases import refresh_phases
 
 
 def create_app(test_config=None):
@@ -51,6 +53,7 @@ def create_app(test_config=None):
 
     @app.before_request
     def load_user_and_check_form():
+        refresh_phases(get_db())
         if "csrf_token" not in session:
             session["csrf_token"] = secrets.token_hex(32)
         if request.method == "POST":
@@ -176,10 +179,7 @@ def create_app(test_config=None):
         session.clear()
         return redirect(url_for("login"))
 
-    @app.route("/admin/dashboard")
-    @role_required("Admin")
-    def admin_dashboard():
-        return render_template("dashboard.html", role="Admin")
+    register_admin_routes(app, get_db, role_required)
 
     @app.route("/examiner/dashboard")
     @role_required("Examiner")

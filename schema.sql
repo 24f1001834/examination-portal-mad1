@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS examiner_profiles (
     examiner_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE RESTRICT,
     department TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'Pending'
-        CHECK (status IN ('Pending', 'Approved', 'Rejected', 'Deactivated'))
+        CHECK (status IN ('Pending', 'Approved', 'Deactivated'))
 );
 
 CREATE TABLE IF NOT EXISTS courses (
@@ -38,10 +38,10 @@ CREATE TABLE IF NOT EXISTS examinations (
     duration_minutes INTEGER NOT NULL CHECK (duration_minutes > 0),
     maximum_marks REAL NOT NULL CHECK (maximum_marks > 0),
     -- Store local dates and times as YYYY-MM-DD HH:MM:SS consistently.
-    slot_creation_start TEXT NOT NULL,
-    slot_creation_end TEXT NOT NULL,
-    booking_start TEXT NOT NULL,
-    booking_end TEXT NOT NULL,
+    slot_creation_start TEXT,
+    slot_creation_end TEXT,
+    booking_start TEXT,
+    booking_end TEXT,
     status TEXT NOT NULL DEFAULT 'Draft'
         CHECK (status IN ('Draft', 'Slot Creation', 'Booking Open', 'Closed', 'Completed')),
     results_published INTEGER NOT NULL DEFAULT 0 CHECK (results_published IN (0, 1)),
@@ -113,6 +113,19 @@ CREATE TABLE IF NOT EXISTS evaluation_marks (
     rubric_id INTEGER NOT NULL REFERENCES examination_rubrics(id) ON DELETE RESTRICT,
     awarded_marks REAL NOT NULL CHECK (awarded_marks >= 0),
     PRIMARY KEY (evaluation_id, rubric_id)
+);
+
+-- Exceptional Admin changes retain both the old and new values.
+CREATE TABLE IF NOT EXISTS admin_changes (
+    id INTEGER PRIMARY KEY,
+    admin_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    booking_id INTEGER REFERENCES bookings(id) ON DELETE RESTRICT,
+    slot_id INTEGER NOT NULL REFERENCES examination_slots(id) ON DELETE RESTRICT,
+    change_type TEXT NOT NULL CHECK (change_type IN ('Reschedule', 'Reassign')),
+    old_value INTEGER NOT NULL,
+    new_value INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Available seats will be calculated from capacity minus Booked/Completed rows.

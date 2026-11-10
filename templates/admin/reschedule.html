@@ -1,0 +1,10 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/forms.html' import token, field with context %}
+{% block admin_content %}
+<h1 class="h3">Reschedule booking #{{ booking.id }}</h1>
+<p>Student #{{ booking.student_id }}. Examination #{{ booking.examination_id }}. Current slot #{{ booking.slot_id }}.</p>
+<p>Admin may override the booking deadline. Capacity, Student conflicts, and evaluation history remain protected.</p>
+<form method="post" class="col-lg-8 border rounded bg-white p-3">{{ token() }}
+<label for="slot_id" class="form-label">New slot in the same examination</label><select id="slot_id" name="slot_id" class="form-select mb-3" required><option value="">Choose another upcoming slot</option>{% for s in slots %}<option value="{{ s.id }}">#{{ s.id }}: {{ s.slot_date }} {{ s.start_time }}–{{ s.end_time }}, {{ s.examiner_name }}, {{ s.status }}</option>{% endfor %}</select>
+{{ field('reason','Reason for exceptional rescheduling',maximum=1000) }}<button class="btn btn-primary">Reschedule booking</button></form>
+{% endblock %}

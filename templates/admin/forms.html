@@ -1,0 +1,7 @@
+{% macro token() %}<input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">{% endmacro %}
+{% macro field(name, label, value='', type='text', required=true, step='', maximum='') %}
+<div class="mb-3">
+  <label for="{{ name }}" class="form-label">{{ label }}</label>
+  <input class="form-control" id="{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ request.form.get(name, value) }}" {% if required %}required{% endif %} {% if step %}step="{{ step }}" min="{{ step }}"{% endif %} {% if maximum %}maxlength="{{ maximum }}"{% endif %}>
+</div>
+{% endmacro %}

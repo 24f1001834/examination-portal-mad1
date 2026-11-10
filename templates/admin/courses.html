@@ -1,0 +1,24 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/forms.html' import token, field with context %}
+{% block admin_content %}
+<h1 class="h3">Courses</h1>
+{% if show_form %}<section class="col-lg-6">
+<h2 class="h5">{{ 'Edit course #' ~ course.id if course else 'Add course' }}</h2>
+<form method="post" class="border rounded bg-white p-3">{{ token() }}
+  {{ field('code','Course code',course.code if course else '',maximum=30) }}
+  {{ field('name','Course name',course.name if course else '',maximum=150) }}
+  {{ field('description','Description',course.description if course else '',required=false,maximum=2000) }}
+  <label for="status" class="form-label">Status</label>
+  <select id="status" name="status" class="form-select mb-3">{% for status in ['Active','Inactive'] %}<option {% if request.form.get('status',course.status if course else 'Active') == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select>
+  <button class="btn btn-primary">Save course</button> <a href="{{ url_for('admin_courses') }}">Cancel</a>
+</form></section>
+{% else %}<a class="btn btn-primary mb-3" href="/admin/courses/new">New course</a>
+<section><h2 class="h5">All courses</h2>
+
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>ID</th><th>Code</th><th>Name</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for c in courses %}<tr><td>{{ c.id }}</td><td>{{ c.code }}</td><td>{{ c.name }}</td><td>{{ c.description or '' }}</td><td>{{ c.status }}</td><td>
+<a href="{{ url_for('admin_courses',course_id=c.id) }}">Edit</a>
+<form method="post" action="{{ url_for('admin_delete_course',course_id=c.id) }}" class="mt-2">{{ token() }}<button class="btn btn-sm btn-outline-danger">Delete</button></form>
+</td></tr>{% else %}<tr><td colspan="6">No courses.</td></tr>{% endfor %}
+</tbody></table></div></section>{% endif %}
+{% endblock %}

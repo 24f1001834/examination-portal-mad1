@@ -1,0 +1,18 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/forms.html' import token, field with context %}
+{% block admin_content %}
+<h1 class="h3">{{ 'Students' if role == 'Student' else 'Examiners' }}</h1>
+{% if not show_form %}
+{% if role != 'Student' %}<a class="btn btn-primary mb-3" href="/admin/examiners/new">Add Examiner</a>{% endif %}
+<form method="get" class="d-flex flex-wrap gap-2 mb-3"><label class="visually-hidden" for="q">Name or ID</label><input id="q" name="q" value="{{ q }}" placeholder="Name or ID" class="form-control w-auto"><button class="btn btn-outline-primary">Search</button></form>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Active</th><th>Registered (UTC)</th>{% if role != 'Student' %}<th>Department</th><th>Status</th><th>Actions</th>{% endif %}</tr></thead><tbody>
+{% for u in users %}<tr><td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.phone or '' }}</td><td>{{ 'Yes' if u.is_active else 'No' }}</td><td>{{ u.created_at }}</td>{% if role != 'Student' %}<td>{{ u.department or '' }}</td><td>{{ u.status }}</td><td>
+<form method="post" class="d-flex gap-2">{{ token() }}<input type="hidden" name="action" value="status"><input type="hidden" name="user_id" value="{{ u.id }}"><label class="visually-hidden" for="status-{{ u.id }}">Examiner status</label><select id="status-{{ u.id }}" name="status" class="form-select"><option value="Approved">Activate</option><option value="Deactivated">Deactivate</option></select><button class="btn btn-sm btn-outline-primary">Apply</button></form>
+</td>{% endif %}</tr>{% else %}<tr><td colspan="{{ 6 if role == 'Student' else 9 }}">No matching users.</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<section class="col-lg-5 mt-4"><h2 class="h5">Add Examiner</h2>
+<form method="post" class="border rounded bg-white p-3">{{ token() }}<input type="hidden" name="action" value="add">
+{{ field('name','Full name',maximum=100) }}{{ field('email','Email',type='email',maximum=254) }}
+{{ field('department','Department',maximum=100) }}{{ field('phone','Phone',type='tel',required=false,maximum=30) }}
+<label for="password" class="form-label">Initial password (8 to 128 characters)</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" class="form-control mb-3" required>
+<button class="btn btn-primary">Add Examiner</button> <a href="/admin/examiners">Cancel</a></form></section>{% endif %}
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'admin/base.html' %}
+{% block admin_content %}
+<h1 class="h3">History and evaluation records</h1>
+<p>The Examinations, Slots, and Bookings pages include historical records for every status.</p>
+<h2 class="h5">Exceptional Admin changes</h2>
+<p>For Reschedule, old/new values are slot IDs. For Reassign, old/new values are Examiner IDs.</p>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Time (UTC) / Admin</th><th>Change</th><th>Records</th><th>Old → New</th><th>Reason</th></tr></thead><tbody>
+{% for c in changes %}<tr><td>{{ c.changed_at }}<br>{{ c.admin_name }}</td><td>{{ c.change_type }}</td><td>Slot #{{ c.slot_id }}{% if c.booking_id %}<br>Booking #{{ c.booking_id }}{% endif %}</td><td>{{ c.old_value }} → {{ c.new_value }}</td><td>{{ c.reason }}</td></tr>{% else %}<tr><td colspan="5">No exceptional changes.</td></tr>{% endfor %}</tbody></table></div>
+<h2 class="h5 mt-4">All evaluations</h2>
+{% for e in evaluations %}<section class="border rounded bg-white p-3 mb-3">
+<h3 class="h6">Evaluation #{{ e.id }} — {{ e.student_name }} (#{{ e.student_id }}) — {{ e.exam_name }}</h3>
+<p>Booking #{{ e.booking_id }}. Examiner: {{ e.examiner_name }}. Submitted (UTC): {{ e.submitted_at }}.<br>Raw awarded marks total: {{ e.total_marks or 0 }}. Remarks: {{ e.remarks or 'None' }}.</p>
+<ul>{% for m in marks if m.evaluation_id==e.id %}<li>{{ m.criterion_name }}: {{ m.awarded_marks }} / {{ m.maximum_marks }} (weightage {{ m.weightage }}%)</li>{% else %}<li>No criterion marks recorded.</li>{% endfor %}</ul></section>
+{% else %}<p>No evaluation records yet.</p>{% endfor %}
+{% endblock %}
