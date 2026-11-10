@@ -1,0 +1,26 @@
+{% extends 'examiner/base.html' %}
+{% from 'admin/forms.html' import token with context %}
+{% block examiner_content %}
+<h1 class="h3">Examiner dashboard</h1>
+<p>Welcome, {{ g.user['name'] }}.</p>
+<div class="row g-3 mb-4">
+{% for label,count in [('Assigned examinations',exams|length),('Created slots',slots|length),('Students booked',booked),('Pending evaluations',pending)] %}
+<div class="col-6 col-lg-3"><div class="bg-white border rounded p-3"><h2 class="h6">{{ label }}</h2><p class="fs-3 mb-0">{{ count }}</p></div></div>
+{% endfor %}
+</div>
+<h2 class="h5">Assigned examinations</h2>
+<div class="table-responsive"><table class="table table-bordered bg-white">
+<thead><tr><th>ID</th><th>Course code</th><th>Name</th><th>Type</th><th>Duration (minutes)</th><th>Maximum marks</th><th>Status</th><th>Slot creation starts</th><th>Slot creation ends</th><th>Booking starts</th><th>Booking ends</th><th>Actions</th></tr></thead><tbody>
+{% for e in exams %}<tr><td>{{ e.id }}</td><td>{{ e.course_code }}</td><td>{{ e.name }}</td><td>{{ e.exam_type }}</td><td>{{ e.duration_minutes }}</td><td>{{ e.maximum_marks }}</td><td>{{ e.status }}</td><td>{{ e.slot_creation_start or 'Not set' }}</td><td>{{ e.slot_creation_end or 'Not set' }}</td><td>{{ e.booking_start or 'Not set' }}</td><td>{{ e.booking_end or 'Not set' }}</td><td>{% if e.status == 'Slot Creation' %}<a href="{{ url_for('examiner_slot_form',exam_id=e.id) }}">New slot</a>{% endif %}</td></tr>
+{% else %}<tr><td colspan="12">No assigned examinations.</td></tr>{% endfor %}</tbody></table></div>
+<h2 class="h5 mt-4">Your slots</h2>
+<div class="table-responsive"><table class="table table-bordered bg-white">
+<thead><tr><th>ID</th><th>Course code</th><th>Examination</th><th>Date</th><th>Start time</th><th>End time</th><th>Capacity</th><th>Booked</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for s in slots %}<tr><td>{{ s.id }}</td><td>{{ s.course_code }}</td><td>{{ s.exam_name }}</td><td>{{ s.slot_date }}</td><td>{{ s.start_time }}</td><td>{{ s.end_time }}</td><td>{{ s.maximum_capacity }}</td><td>{{ s.booked }}</td><td>{{ s.status }}</td><td>
+<a href="{{ url_for('examiner_students',slot_id=s.id) }}">Students</a>
+{% if s.status not in ['Cancelled','Completed'] %}
+<a class="ms-2" href="{{ url_for('examiner_slot_form',slot_id=s.id) }}">Edit</a>
+<form class="mt-2" method="post" action="{{ url_for('examiner_delete_slot',slot_id=s.id) }}">{{ token() }}<button class="btn btn-sm btn-outline-danger">Delete</button></form>
+{% endif %}</td></tr>
+{% else %}<tr><td colspan="10">No slots.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

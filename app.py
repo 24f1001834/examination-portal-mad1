@@ -11,6 +11,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import DATABASE_PATH, get_connection
 from admin import register_admin_routes
+from examiner import register_examiner_routes
 from phases import refresh_phases
 
 
@@ -181,10 +182,7 @@ def create_app(test_config=None):
 
     register_admin_routes(app, get_db, role_required)
 
-    @app.route("/examiner/dashboard")
-    @role_required("Examiner")
-    def examiner_dashboard():
-        return render_template("dashboard.html", role="Examiner")
+    register_examiner_routes(app, get_db, role_required)
 
     @app.route("/student/dashboard")
     @role_required("Student")

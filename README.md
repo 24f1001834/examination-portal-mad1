@@ -15,10 +15,12 @@ The system supports three roles:
 - Database models and schema setup: approved, committed, and pushed;
   20 verification checks passed.
 - Authentication and role-based access: approved, committed, and pushed.
-- Milestone 3, Admin dashboard and examination management: implemented and
-  tested; awaiting review and approval before commit or the next milestone.
-- Examiner slot creation, Student booking, and evaluation submission screens
-  belong to the following milestones and are not implemented yet.
+- Milestone 3, Admin dashboard and examination management: approved, committed,
+  and pushed.
+- Milestone 4, Examiner dashboard and slot management: implemented and tested;
+  awaiting review and approval before commit or the next milestone.
+- Student booking and result-viewing screens belong to Milestone 5 and are not
+  implemented yet.
 
 ## Database setup
 
@@ -123,8 +125,8 @@ The browser session stores the user ID and a form-protection token, not password
 - All roles use the same login page. Passwords are hashed with Werkzeug.
 - Examiner registration creates a Pending profile. Only Approved, active
   Examiners may log in. Admin can now approve them from Examiners.
-- Each role has its own protected dashboard. Admin management is implemented;
-  Examiner and Student management functions belong to later milestones.
+- Each role has its own protected dashboard. Admin and Examiner management are
+  implemented; Student management belongs to the next milestone.
 - Account activity and Examiner approval are checked on every request.
 - Logout clears the session and requires a POST form submission. All POST
   forms require a session-bound CSRF token to prevent unwanted form submissions.
@@ -250,8 +252,8 @@ Admin has no publish/hide result controls. The shared get_student_result helper
 in results.py returns only the requesting Student's completed evaluation with
 valid marks for all rubric criteria. Other Students' pending bookings and the
 examination-wide phase do not block an eligible result. Incomplete evaluations
-remain pending. The Examiner submission and Student result screens will use
-this rule in their respective milestones; those screens are not built yet.
+remain pending. Examiner submission is implemented in Milestone 4. The Student
+result screen will use this rule in Milestone 5 and is not built yet.
 The old results_published database column is retained only for compatibility
 with existing databases and has no effect on result visibility.
 
@@ -271,3 +273,60 @@ examination itself. Slot dates, times, and capacity can be edited with conflict,
 capacity, and historical-evaluation protection. Examination Edit remains on the
 Examinations list. Add Examiner opens a separate form; new Admin-added accounts
 start Deactivated. Activate and Deactivate control access.
+
+## Milestone 4 Examiner workflow
+
+This milestone follows the supplied Word assignment. The wireframe image is not
+used as the UI specification. No schema migration or extra dependencies are
+needed for this milestone.
+
+1. Register an Examiner and activate the account from Admin > Examiners.
+   Alternatively, Admin can add and then activate an Examiner.
+2. From Admin, complete examination rubrics and assign that Examiner. Configure
+   the slot creation and booking timelines under Manage.
+3. Log in as the Examiner. The dashboard shows assigned examinations, owned
+   slots, non-cancelled Student bookings, and pending evaluations. Each displayed
+   attribute has its own table column. Profile allows name, phone, and department
+   updates; it cannot change account approval, role, or email.
+4. During the slot creation period, choose New slot for an assigned examination.
+   Enter a date, start/end times, and positive whole-number capacity. The slot
+   must start after Student booking closes, fit at least the examination duration,
+   and not overlap any other non-cancelled slot for this Examiner. All slot times
+   use Asia/Kolkata. Rubric marks and weightages must have valid totals.
+5. Edit or delete an upcoming slot before Student booking starts. Slots with
+   non-cancelled bookings require Admin assistance. Deletion retains a Cancelled
+   slot if booking or Admin history references it; otherwise it removes the row.
+   These rules are checked on every submission, including forms opened earlier.
+6. Open Students for an owned slot. Bookings show their status and evaluation
+   link. After the slot ends, enter marks for every criterion and optional remarks.
+   Each score must be finite and between zero and that criterion's maximum.
+   Submit once: the evaluation, marks, and booking completion are saved together.
+7. Submitted evaluations are read-only. When no Booked records remain, the slot
+   becomes Completed. The overall examination follows the existing automatic
+   completion rules. Another Student's pending evaluation does not delay the
+   submitted Student's result eligibility.
+
+The Student results page and Student booking form remain Milestone 5 work.
+Testing this milestone uses temporary booking fixtures instead of adding
+unrequested booking tools to the Examiner interface. No real Student records
+or evaluation records were created during testing.
+
+## Milestone 4 verification
+
+```powershell
+.\.venv\Scripts\python.exe -B -m unittest discover -s tests -v
+```
+
+All 53 tests passed on 11 November 2026: 21 Examiner tests plus the 32 existing
+Admin and scheduling tests. Coverage includes profile validation, dashboard
+counts, creation-period boundaries, the booking-start edit deadline, slot
+overlaps, assignment and ownership restrictions, deactivation, CSRF, rubric
+readiness, invalid/missing marks, duplicate submissions, read-only evaluations,
+slot and examination completion, and immediate Student-specific result
+eligibility. A deliberately failed mark insert verifies that partial evaluations
+and booking completion are rolled back together.
+
+Issue resolved during implementation: an SQL string quote error prevented module
+import on the first test run. It was corrected before rerunning the full suite.
+Templates were rendered through Flask's test client; browser appearance has not
+been visually reviewed.

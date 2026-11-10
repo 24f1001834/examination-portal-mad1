@@ -1,0 +1,24 @@
+{% extends 'examiner/base.html' %}
+{% from 'admin/forms.html' import token with context %}
+{% block examiner_content %}
+<h1 class="h3">{{ 'Evaluation' if evaluation else 'Evaluate Student' }}</h1>
+<p>{{ booking.student_name }} (#{{ booking.student_id }}) — {{ exam.course_code }} — {{ exam.name }} — booking #{{ booking.id }}</p>
+{% if evaluation %}
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Criterion</th><th>Maximum marks</th><th>Awarded marks</th></tr></thead><tbody>
+{% for r in rubrics %}<tr><td>{{ r.criterion_name }}</td><td>{{ r.maximum_marks }}</td><td>{{ scores.get(r.id,'Missing') }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p>Remarks: {{ evaluation.remarks or 'None' }}</p>
+<p>Submitted (UTC): {{ evaluation.submitted_at }}</p>
+{% elif booking.status == 'Booked' and slot.status != 'Cancelled' %}
+<form method="post" class="col-lg-8 bg-white border rounded p-3">{{ token() }}
+{% for r in rubrics %}
+<div class="mb-3"><label class="form-label" for="marks_{{ r.id }}">{{ r.criterion_name }} (maximum {{ r.maximum_marks }})</label>
+{% if r.description %}<p class="text-secondary">{{ r.description }}</p>{% endif %}
+<input class="form-control" type="number" id="marks_{{ r.id }}" name="marks_{{ r.id }}" min="0" max="{{ r.maximum_marks }}" step="any" value="{{ request.form.get('marks_' ~ r.id,'') }}" required></div>
+{% else %}<p>No rubric criteria configured.</p>{% endfor %}
+<label for="remarks" class="form-label">Remarks</label><textarea id="remarks" name="remarks" class="form-control mb-3" maxlength="2000" rows="3">{{ request.form.get('remarks','') }}</textarea>
+<button class="btn btn-primary" {% if not rubrics %}disabled{% endif %}>Submit evaluation</button>
+</form>
+{% else %}<p>This booking is not awaiting evaluation.</p>{% endif %}
+<a class="d-inline-block mt-3" href="{{ url_for('examiner_students',slot_id=slot.id) }}">Back to Students</a>
+{% endblock %}

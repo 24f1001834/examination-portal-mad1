@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Examiner | Examination Management Portal{% endblock %}
+{% block content_width %}col-12{% endblock %}
+{% block content %}
+<nav class="d-flex gap-3 mb-4" aria-label="Examiner navigation">
+  <a href="{{ url_for('examiner_dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('examiner_profile') }}">Profile</a>
+</nav>
+{% block examiner_content %}{% endblock %}
+{% endblock %}
