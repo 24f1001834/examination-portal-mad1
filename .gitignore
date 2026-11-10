@@ -1,0 +1,9 @@
+# Local database and SQLite transaction files
+*.db
+*.db-*
+
+# Python generated files and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
